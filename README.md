@@ -34,4 +34,4 @@ rv_wheel.setOnSelectListener(new RecycleWheelView.OnSelectItemListener() {
 rv_wheel.setAdapter(mAdapter);
 ```
 
-![预览](https://raw.githubusercontent.com/qgx446738721/android-lib/master/RecycleWheelView/art/preview.png)
+![预览](https://raw.githubusercontent.com/qgx446738721/RecycleWheelView/master/art/preview.png)
