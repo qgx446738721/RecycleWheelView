@@ -5,9 +5,13 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -60,6 +64,26 @@ public class RecycleWheelView extends RecyclerView{
 
     public void setOnSelectListener(OnSelectItemListener listener){
         this.mSelectListener = listener;
+    }
+
+    public void setLineColor(int color){
+        if(mLineDrawable != null){
+            mLineDrawable.setColor(color);
+        }
+        else{
+            mLineDrawable = new ColorDrawable(color);
+        }
+        requestLayout();
+    }
+
+    public void setLineThickness(int thickness){
+        mLineThickness = thickness;
+        requestLayout();
+    }
+
+    public void setLineDrawable(Drawable drawable){
+        mCustomLineDrawable = drawable;
+        requestLayout();
     }
 
     void initAttr(AttributeSet attrs, int defStyle){
@@ -134,9 +158,27 @@ public class RecycleWheelView extends RecyclerView{
     }
 
     @Override
-    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-        super.onScrollChanged(l, t, oldl, oldt);
-        updateChildUI();
+    protected void onMeasure(int widthSpec, int heightSpec) {
+        super.onMeasure(widthSpec, heightSpec);
+        if(getChildCount() > 0){
+            View view = getChildAt(0);
+            int paddingH = (getWidth() - view.getWidth()) >> 1;
+            int paddingV = (getHeight() - view.getHeight()) >> 1;
+            if(getLayoutManager().canScrollHorizontally()){
+                if(getPaddingLeft() != paddingH || getPaddingRight() != paddingH) {
+                    setPadding(paddingH, mOldPaddingTop, paddingH, mOldPaddingBottom);
+                    scrollToPosition(0);
+                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
+                }
+            }
+            else{
+                if(getPaddingTop() != paddingV || getPaddingBottom() != paddingV) {
+                    setPadding(mOldPaddingLeft, paddingV, mOldPaddingRight, paddingV);
+                    scrollToPosition(0);
+                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
+                }
+            }
+        }
     }
 
     @Override
@@ -172,6 +214,12 @@ public class RecycleWheelView extends RecyclerView{
                 drawable.draw(c);
             }
         }
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        updateChildUI();
     }
 
     /***
@@ -216,22 +264,6 @@ public class RecycleWheelView extends RecyclerView{
      * 更新子view的ui
      */
     protected void updateChildUI(){
-        if(getChildCount() > 0){
-            View view = getChildAt(0);
-            int paddingH = (getWidth() - view.getWidth()) >> 1;
-            int paddingV = (getHeight() - view.getHeight()) >> 1;
-            if(getLayoutManager().canScrollHorizontally()){
-                if(getPaddingLeft() != paddingH || getPaddingRight() != paddingH) {
-                    setPadding(paddingH, mOldPaddingTop, paddingH, mOldPaddingBottom);
-                }
-            }
-            else{
-                if(getPaddingTop() != paddingV || getPaddingBottom() != paddingV) {
-                    setPadding(mOldPaddingLeft, paddingV, mOldPaddingRight, paddingV);
-                }
-            }
-        }
-
         if(getLayoutManager().canScrollHorizontally()){
             mCurView = ViewUtils.getCenterXChild(this);
         }
@@ -246,11 +278,17 @@ public class RecycleWheelView extends RecyclerView{
                 float midX = view.getLeft() + view.getWidth()/2.0f;
                 float size = getWidth()/2.0f;
                 value = (size - midX) / size;
+                if(ViewUtils.isChildInCenterX(this, view)){
+                    mCurView = view;
+                }
             }
             else{
                 float midY = view.getTop() + view.getHeight()/2.0f;
                 float size = getHeight()/2.0f;
                 value = (size - midY) / size;
+                if(ViewUtils.isChildInCenterY(this, view)){
+                    mCurView = view;
+                }
             }
             value = (float) Math.sqrt(1.0f - value*value);
             value = Math.min(1.0f, Math.abs(value));
@@ -271,4 +309,12 @@ public class RecycleWheelView extends RecyclerView{
     public interface OnSelectItemListener{
         void onSelectChanged(int position);
     }
+
+    Handler mUpdateHandler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            updateChildUI();
+            return true;
+        }
+    });
 }
