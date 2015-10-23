@@ -168,14 +168,14 @@ public class RecycleWheelView extends RecyclerView{
                 if(getPaddingLeft() != paddingH || getPaddingRight() != paddingH) {
                     setPadding(paddingH, mOldPaddingTop, paddingH, mOldPaddingBottom);
                     scrollToPosition(0);
-                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
+//                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
                 }
             }
             else{
                 if(getPaddingTop() != paddingV || getPaddingBottom() != paddingV) {
                     setPadding(mOldPaddingLeft, paddingV, mOldPaddingRight, paddingV);
                     scrollToPosition(0);
-                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
+//                    mUpdateHandler.sendEmptyMessageDelayed(0, 60);
                 }
             }
         }
@@ -214,11 +214,7 @@ public class RecycleWheelView extends RecyclerView{
                 drawable.draw(c);
             }
         }
-    }
 
-    @Override
-    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-        super.onScrollChanged(l, t, oldl, oldt);
         updateChildUI();
     }
 
@@ -309,12 +305,4 @@ public class RecycleWheelView extends RecyclerView{
     public interface OnSelectItemListener{
         void onSelectChanged(int position);
     }
-
-    Handler mUpdateHandler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            updateChildUI();
-            return true;
-        }
-    });
 }
